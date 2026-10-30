@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tub Video Pro</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#fff;--fg:#0f0f0f;--mut:#606060;--card:#f2f2f2;--line:#e5e5e5;--red:#e11d1d}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f0f0f;--fg:#f1f1f1;--mut:#aaa;--card:#272727;--line:#303030}}
+:root[data-theme=dark]{--bg:#0f0f0f;--fg:#f1f1f1;--mut:#aaa;--card:#272727;--line:#303030}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px system-ui,-apple-system,Roboto,Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+#app{height:100dvh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;border-bottom:1px solid var(--line)}
+.logo{background:var(--red);color:#fff;border-radius:6px;padding:2px 8px;font-size:14px}
+.bn{font-size:17px}
+.sb{flex:1;display:flex;max-width:600px;margin:auto}
+.sb input{margin:0;border-radius:20px 0 0 20px;padding:8px 14px;font-size:15px}
+.sb button{background:var(--card);border:1px solid var(--mut);border-left:0;border-radius:0 20px 20px 0;padding:0 14px}
+.ib{font-size:18px;padding:6px 8px}
+main{flex:1;min-height:0;overflow-y:auto;position:relative}
+nav{display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;padding:8px 0;font-size:11px;display:flex;flex-direction:column;align-items:center}
+nav button span{font-size:20px}
+nav button.on{color:var(--red);font-weight:700}
+input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--mut);background:var(--bg);color:var(--fg);font:inherit;font-size:16px;margin-bottom:12px}
+.btn{padding:11px 18px;border-radius:22px;background:var(--red);color:#fff;font-weight:700;font-size:15px}
+.btn:disabled{opacity:.5}
+.btn.g{background:var(--card);color:var(--fg)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;position:sticky;top:0;background:var(--bg);z-index:2}
+.chip{background:var(--card);padding:7px 14px;border-radius:8px;white-space:nowrap}
+.chip.on{background:var(--fg);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px 14px;padding:12px}
+.vc{cursor:pointer}
+.th{position:relative;aspect-ratio:16/9;background:#222;border-radius:12px;overflow:hidden}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.du{position:absolute;right:6px;bottom:6px;background:#000c;color:#fff;font-size:12px;padding:1px 5px;border-radius:4px}
+.del{position:absolute;left:6px;top:6px;background:#000c;border-radius:6px;padding:4px 8px}
+.vi{display:flex;gap:10px;margin-top:10px}
+.t{font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.m{color:var(--mut);font-size:12px;margin-top:2px}
+.av{width:36px;height:36px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;cursor:pointer}
+.av.s{width:28px;height:28px;font-size:13px}
+.av.l{width:72px;height:72px;font-size:30px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{justify-content:space-between}
+.sbtn{background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:20px;font-weight:600;white-space:nowrap}
+.sbtn.on{background:var(--card);color:var(--fg)}
+.ov{position:fixed;inset:0;background:var(--bg);z-index:9;overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
+.bar{display:flex;align-items:center;gap:8px;padding:8px;position:sticky;top:0;background:var(--bg);z-index:3;font-size:16px;font-weight:600}
+.w{max-width:1100px;margin:auto;padding:0 12px 24px}
+#pv{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;display:block}
+@media(min-width:900px){.watch{display:grid;grid-template-columns:1fr 380px;gap:20px}}
+.wt{font-size:18px;margin:12px 0 8px;line-height:1.3}
+.acts{display:flex;gap:8px;overflow-x:auto;margin:12px 0;padding-bottom:4px}
+.pill{background:var(--card);border-radius:20px;padding:8px 14px;white-space:nowrap;display:inline-flex}
+.pill button{padding:0 6px}
+.pill.on,.pill .on{color:var(--red);font-weight:700}
+.desc{background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:14px;cursor:pointer}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#dt{white-space:pre-wrap;margin-top:4px}
+.cm{display:flex;gap:10px;margin:14px 0}
+.cm>div:nth-child(2){flex:1}
+.rl{display:flex;gap:10px;margin-bottom:12px}
+.rl .th{width:168px;flex:none}
+.shorts{position:absolute;inset:0;overflow-y:scroll;scroll-snap-type:y mandatory;background:#000}
+.sh{height:100%;scroll-snap-align:start;position:relative;color:#fff}
+.sh video{width:100%;height:100%;object-fit:contain}
+.cap{position:absolute;left:12px;right:80px;bottom:18px;text-shadow:0 1px 4px #000;display:flex;flex-direction:column;gap:8px}
+.rail{position:absolute;right:8px;bottom:24px;display:flex;flex-direction:column;gap:16px}
+.rail button{display:flex;flex-direction:column;align-items:center;font-size:24px;background:#0008;border-radius:30px;padding:10px 12px;color:#fff}
+.rail small{font-size:11px}
+.rail .on{color:#ff5a5a}
+.ban{height:110px}
+.chh{display:flex;align-items:center;gap:14px;padding:14px;flex-wrap:wrap}
+.chh h2{font-size:20px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:12px;font-weight:600;color:var(--mut)}
+.tabs .on{color:var(--fg);border-bottom:2px solid var(--fg)}
+.chr{display:flex;align-items:center;gap:12px;padding:8px 14px}
+.chr>div:nth-child(2){flex:1}
+.sc{padding:12px}
+.sci{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;cursor:pointer}
+.mr{display:flex;justify-content:space-between;padding:14px;border-top:1px solid var(--line);cursor:pointer;font-size:15px}
+.stats{display:flex;gap:10px;padding:0 14px}
+.stats div{flex:1;background:var(--card);border-radius:10px;padding:10px;text-align:center}
+.stats b{display:block;font-size:18px;color:var(--red)}
+.empty{text-align:center;color:var(--mut);padding:50px 20px}
+.pad{padding:14px;max-width:560px;margin:auto}
+.pad h2{margin-bottom:14px}
+.pb{height:6px;background:var(--card);border-radius:3px;margin-bottom:12px;overflow:hidden}
+.pb i{display:block;height:100%;width:0;background:var(--red)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:8px;z-index:99}
+.login{padding:60px 24px;text-align:center;max-width:420px;margin:auto}
+.login h1{margin:12px 0 6px}
+.login p{margin-bottom:20px}
+header{position:sticky;top:0;z-index:5;background:var(--bg)}
+.vc .th{box-shadow:0 1px 3px #0003;transition:border-radius .15s}
+.vc:hover .th{border-radius:4px}
+.login{margin-top:8vh;background:var(--card);border-radius:20px;padding:34px 24px;box-shadow:0 8px 30px #0002}
+.lg{width:64px;height:64px;margin:auto;background:var(--red);color:#fff;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.sec{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px}
+.sec h3{margin-bottom:10px}
+.sec input{background:var(--bg)}
+.mr:hover{background:var(--card)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var CFG={
+  firebase:{apiKey:"AIzaSyDxxvZz4cMMVMVB7DnbVrqb3iM2i4lBaC8",authDomain:"tub-video.firebaseapp.com",projectId:"tub-video",appId:"1:735112414517:web:664544d7093ea97aeb387c"},
+  cloudName:"i0bmlmb9",preset:"tubvideo_preset"
+};
+try{firebase.initializeApp(CFG.firebase)}catch(e){}
+var fs=firebase.firestore();try{fs.settings({experimentalForceLongPolling:true})}catch(e){}
+var FV=firebase.firestore.FieldValue;
+var $=s=>document.querySelector(s),app=$('#app');
+var U=localStorage.getItem('tub_user')||'',S={tab:'home',q:'',chip:'All',lib:'',ct:'v',ch:''},D={v:[],c:{}},W=null,seen={},A={};
+var LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+var H=LS('tub_hist',[]),WL=LS('tub_wl',[]),sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+if(localStorage.getItem('tub_theme'))document.documentElement.dataset.theme=localStorage.getItem('tub_theme');
+var esc=t=>{var d=document.createElement('div');d.textContent=t==null?'':t;return d.innerHTML.replace(/"/g,'&quot;').replace(/'/g,'&#39;')};
+var fmtN=n=>{n=n||0;if(n>=1e6)return(Math.floor(n/1e5)/10+'').replace('.0','')+'M';if(n>=1e4)return Math.floor(n/1e3)+'K';if(n>=1e3)return(Math.floor(n/100)/10+'')+'K';return''+n};
+var fmtD=s=>{if(!s)return'';s=Math.round(s);var h=s/3600|0,m=(s%3600)/60|0,c=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(c).padStart(2,'0')};
+var ago=ts=>{if(!ts)return'';var s=(Date.now()-ts)/1000,u=[[31536000,'year'],[2592000,'month'],[604800,'week'],[86400,'day'],[3600,'hour'],[60,'minute']];for(var i=0;i<u.length;i++){var n=Math.floor(s/u[i][0]);if(n>=1)return n+' '+u[i][1]+(n>1?'s':'')+' ago'}return'just now'};
+var colr=n=>{var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;return'hsl('+h+',55%,45%)'};
+var av=(n,c)=>`<div class="av ${c||''}" data-a="ch" data-v="${esc(n)}" style="background:${colr(n)}">${esc((n||'?').charAt(0).toUpperCase())}</div>`;
+var thumb=x=>x.thumb||(x.url&&x.url.indexOf('/upload/')>0?x.url.replace('/upload/','/upload/so_1,w_480,h_270,c_fill/').replace(/\.\w+$/,'.jpg'):'');
+var byId=id=>D.v.find(x=>x.id===id),subs=n=>D.c[n]||[],sc=n=>fmtN(subs(n).length);
+var handle=n=>'@'+n.toLowerCase().replace(/\s+/g,'');
+function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
+function reg(n){fs.collection('channels').doc(n).set({name:n,ts:Date.now()},{merge:true}).catch(()=>{})}
+function subBtn(n){if(n===U)return'';var on=subs(n).includes(U);return`<button class="sbtn ${on?'on':''}" data-a="sub" data-v="${esc(n)}">${on?'Subscribed ✓':'Subscribe'}</button>`}
+
+function load(){return Promise.all([
+  fs.collection('videos').orderBy('ts','desc').get().then(q=>q.docs.map(d=>Object.assign(d.data(),{id:d.id}))).catch(()=>D.v),
+  fs.collection('channels').get().then(q=>{var o={};q.docs.forEach(d=>{var x=d.data();o[x.name||d.id]=x.subs||[]});return o}).catch(()=>D.c)
+]).then(r=>{D.v=r[0];D.c=r[1];render()})}
+
+function login(){
+  app.innerHTML='<div class="login"><div class="lg">▶</div><h1>Tub Video Pro</h1><p class="m">Channel naam aur password daalein.<br>Naya naam = naya channel. Purana naam = sahi password zaroori.</p><input id="un" placeholder="Channel naam" maxlength="20" autocomplete="username"><input id="pw" type="password" placeholder="Password (kam se kam 4 akshar)" autocomplete="current-password"><button class="btn" id="go" data-a="login" style="width:100%">Login / Naya channel</button></div>';
+  $('#pw').onkeydown=e=>{if(e.key==='Enter')A.login()};
+}
+async function hp(salt,p){var s=salt+'|'+p;if(window.crypto&&crypto.subtle){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}var h=5381;for(var i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return'x'+h}
+var rs=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+A.login=async()=>{
+  var n=$('#un').value.trim(),p=$('#pw').value,b=$('#go');
+  if(!n||p.length<4)return toast('Naam aur kam se kam 4 akshar ka password daalein');
+  b.disabled=true;
+  try{
+    var q=await fs.collection('channels').get(),ex=null;
+    q.docs.forEach(d=>{var nm=d.data().name||d.id;if(nm.toLowerCase()===n.toLowerCase())ex=nm});
+    var name=ex||n,ref=fs.collection('auth').doc(name),ad=await ref.get();
+    if(ad.exists){
+      if(await hp(ad.data().salt,p)!==ad.data().ph){toast('Galat password! Yeh channel kisi aur ka hai.');b.disabled=false;return}
+    }else{var salt=rs();await ref.set({salt:salt,ph:await hp(salt,p),ts:Date.now()})}
+    reg(name);localStorage.setItem('tub_user',name);U=name;S.tab='home';shell();
+  }catch(e){toast('Network check karein');b.disabled=false}
+};
+
+function shell(){
+  app.innerHTML=`<header><button class="ib" id="bk" data-a="back" style="display:none">←</button><span class="logo">▶</span><b class="bn">Tub</b><div class="sb"><input id="q" placeholder="Search videos, channels" value="${esc(S.q)}"><button data-a="search">🔍</button></div><button class="ib" data-a="theme">🌓</button>${av(U,'s')}</header><main id="m"><div class="empty">Loading...</div></main><nav>${[['home','🏠','Home'],['shorts','🎬','Shorts'],['up','➕','Upload'],['subs','📺','Subscriptions'],['you','👤','You']].map(t=>`<button data-a="tab" data-v="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</nav>`;
+  $('#q').onkeydown=e=>{if(e.key==='Enter')A.search()};
+  load().then(()=>{var h=location.hash.match(/^#v=(.+)/);if(h)A.watch(h[1])});
+}
+
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.tab||(S.tab==='channel'&&b.dataset.v==='you')));
+  var m=$('#m');m.style.overflow=S.tab==='shorts'?'hidden':'auto';m.scrollTop=0;
+  ({home:home,shorts:shorts,up:upload,subs:subsView,you:you,channel:channel})[S.tab](m);updBk();
+}
+
+function card(x){
+  var own=x.author===U&&((S.tab==='you'&&S.lib==='mine')||S.tab==='channel');
+  return`<div class="vc" data-a="watch" data-v="${x.id}"><div class="th"><img loading="lazy" src="${thumb(x)}" onerror="this.style.display='none'"><span class="du">${x.kind==='short'?'SHORT':fmtD(x.dur)}</span>${own?`<button class="del" data-a="del" data-v="${x.id}">🗑</button>`:''}</div><div class="vi">${av(x.author)}<div><div class="t">${esc(x.title)}</div><div class="m">${esc(x.author)} · ${fmtN(x.views||0)} views · ${ago(x.ts)}</div></div></div></div>`;
+}
+var rel=y=>`<div class="vc rl" data-a="watch" data-v="${y.id}"><div class="th"><img loading="lazy" src="${thumb(y)}" onerror="this.style.display='none'"><span class="du">${fmtD(y.dur)}</span></div><div><div class="t">${esc(y.title)}</div><div class="m">${esc(y.author)}<br>${fmtN(y.views||0)} views · ${ago(y.ts)}</div></div></div>`;
+
+function home(m){
+  var q=S.q.toLowerCase(),L=D.v.filter(x=>((x.title||'')+' '+(x.author||'')+' '+(x.desc||'')).toLowerCase().includes(q));
+  if(S.chip==='Videos')L=L.filter(x=>x.kind!=='short');
+  if(S.chip==='Shorts')L=L.filter(x=>x.kind==='short');
+  if(S.chip==='Popular')L=L.slice().sort((a,b)=>(b.views||0)-(a.views||0));
+  if(S.chip==='New')L=L.filter(x=>Date.now()-x.ts<6048e5);
+  var cs=q?Object.keys(D.c).filter(c=>c.toLowerCase().includes(q)):[];
+  m.innerHTML=`<div class="chips">${['All','Videos','Shorts','New','Popular'].map(c=>`<button class="chip ${c===S.chip?'on':''}" data-a="chip" data-v="${c}">${c}</button>`).join('')}</div>`+
+  cs.map(c=>`<div class="chr">${av(c)}<div><b>${esc(c)}</b><div class="m">${handle(c)} · <span data-sc="${esc(c)}">${sc(c)}</span> subscribers</div></div>${subBtn(c)}</div>`).join('')+
+  (L.length?`<div class="grid">${L.map(card).join('')}</div>`:'<div class="empty">Koi video nahi mili.</div>');
+}
+
+function wb(){
+  var x=W,l=x.likes||[],d=x.dislikes||[],cm=x.comments||[],on=WL.includes(x.id),keep=$('#ci')?$('#ci').value:'';
+  $('#wb').innerHTML=`<h3 class="wt">${esc(x.title)}</h3>
+  <div class="row sp">${'<div class="row">'+av(x.author)}<div><b>${esc(x.author)}</b><div class="m"><span data-sc="${esc(x.author)}">${sc(x.author)}</span> subscribers</div></div></div>${subBtn(x.author)}</div>
+  <div class="acts"><span class="pill"><button data-a="like" data-v="${x.id}" class="${l.includes(U)?'on':''}">👍 ${fmtN(l.length)}</button><button data-a="dislike" data-v="${x.id}" class="${d.includes(U)?'on':''}">👎</button></span><button class="pill" data-a="share" data-v="${x.id}">↗ Share</button><button class="pill ${on?'on':''}" data-a="wl" data-v="${x.id}">🕒 ${on?'Saved':'Save'}</button><button class="pill" data-a="dl" data-v="${x.id}">⬇ Download</button>${x.author===U?`<button class="pill" data-a="del" data-v="${x.id}">🗑 Delete</button>`:''}</div>
+  <div class="desc" data-a="more"><b>${fmtN(x.views||0)} views · ${ago(x.ts)}</b><div id="dt" class="clamp">${esc(x.desc||'Koi description nahi.')}</div></div>
+  <h4 style="margin:6px 0 10px">${cm.length} Comments</h4><div class="row"><input id="ci" style="margin:0" placeholder="Add a comment..."><button class="btn" data-a="cmt">Post</button></div>
+  ${cm.map((k,i)=>[k,i]).reverse().map(p=>{var k=p[0];return`<div class="cm">${av(k.user,'s')}<div><b>${handle(k.user)}</b> <span class="m">${ago(k.ts)}</span><div>${esc(k.text)}</div></div>${k.user===U?`<button class="ib" data-a="delc" data-v="${p[1]}">🗑</button>`:''}</div>`}).join('')}`;
+  if(keep)$('#ci').value=keep;
+}
+
+function vw(id){if(seen[id])return;seen[id]=1;var x=byId(id);if(x){x.views=(x.views||0)+1;fs.collection('videos').doc(id).update({views:FV.increment(1)}).catch(()=>{})}}
+function closeOv(){var o=$('#ov');if(o){var v=o.querySelector('video');if(v)v.pause();o.remove()}updBk()}
+
+A.watch=id=>{
+  var x=byId(id);if(!x)return;closeOv();W=x;
+  var o=document.createElement('div');o.className='ov';o.id='ov';
+  o.innerHTML='<div class="bar"><button class="ib" data-a="close">←</button>Watch</div><div class="w watch"><div><video id="pv" src="'+x.url+'" controls autoplay playsinline></video><div id="wb"></div></div><div id="up"></div></div>';
+  document.body.appendChild(o);updBk();
+  vw(id);H=[id].concat(H.filter(i=>i!==id)).slice(0,100);sv('tub_hist',H);
+  wb();
+  var rest=D.v.filter(y=>y.id!==id).sort((a,b)=>(b.author===x.author)-(a.author===x.author)).slice(0,15);
+  $('#up').innerHTML='<h4 style="margin-bottom:10px">Up next</h4>'+rest.map(rel).join('');
+};
+A.close=closeOv;
+A.tab=v=>{closeOv();push();S.tab=v;S.lib='';render()};
+A.chip=v=>{S.chip=v;render()};
+A.lib=v=>{S.lib=v;render()};
+A.ctab=v=>{S.ct=v;render()};
+A.more=()=>$('#dt').classList.toggle('clamp');
+A.search=()=>{closeOv();push();S.q=$('#q').value.trim();S.tab='home';S.chip='All';render()};
+A.ch=n=>{closeOv();push();S.tab='channel';S.ch=n;S.ct='v';render()};
+A.theme=()=>{var r=document.documentElement,dk=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches),t=dk?'light':'dark';r.dataset.theme=t;localStorage.setItem('tub_theme',t)};
+A.logout=()=>{localStorage.removeItem('tub_user');U='';login()};
+
+function refresh(id){
+  var r=$('#rl-'+id);if(r)r.innerHTML=rail(byId(id));
+  if($('#wb')&&W&&(!id||W.id===id))wb();
+  document.querySelectorAll('[data-a=sub]').forEach(b=>{var on=subs(b.dataset.v).includes(U);b.classList.toggle('on',on);b.textContent=on?'Subscribed ✓':'Subscribe'});
+  document.querySelectorAll('[data-sc]').forEach(e=>e.textContent=sc(e.dataset.sc));
+}
+function tog(id,f,o){
+  var x=byId(id),a=x[f]||[],ot=x[o]||[],has=a.includes(U),u={};
+  x[f]=has?a.filter(n=>n!==U):a.concat(U);u[f]=has?FV.arrayRemove(U):FV.arrayUnion(U);
+  if(!has&&ot.includes(U)){x[o]=ot.filter(n=>n!==U);u[o]=FV.arrayRemove(U)}
+  fs.collection('videos').doc(id).update(u).catch(()=>{});refresh(id);
+}
+A.like=id=>tog(id,'likes','dislikes');
+A.dislike=id=>tog(id,'dislikes','likes');
+A.sub=n=>{
+  if(n===U)return;var a=subs(n),has=a.includes(U);D.c[n]=has?a.filter(u=>u!==U):a.concat(U);
+  fs.collection('channels').doc(n).set({name:n,subs:has?FV.arrayRemove(U):FV.arrayUnion(U)},{merge:true}).catch(()=>{});refresh();
+};
+A.wl=id=>{WL=WL.includes(id)?WL.filter(i=>i!==id):[id].concat(WL);sv('tub_wl',WL);if(W)wb();toast(WL.includes(id)?'Watch later mein save hua':'Hata diya')};
+A.share=id=>{var u=location.href.split('#')[0]+'#v='+id,x=byId(id);
+  if(navigator.share)navigator.share({title:x.title,url:u}).catch(()=>{});
+  else if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>toast('Link copy ho gaya'));
+  else prompt('Link:',u)};
+A.dl=id=>window.open(byId(id).url.replace('/upload/','/upload/fl_attachment/'),'_blank');
+A.cmt=()=>{var t=$('#ci').value.trim();if(!t)return;var k={user:U,text:t,ts:Date.now()};W.comments=(W.comments||[]).concat(k);fs.collection('videos').doc(W.id).update({comments:FV.arrayUnion(k)}).catch(()=>{});$('#ci').value='';wb()};
+A.delc=i=>{var k=W.comments[i];W.comments=W.comments.filter((_,j)=>j!=i);fs.collection('videos').doc(W.id).update({comments:FV.arrayRemove(k)}).catch(()=>{});wb()};
+A.del=id=>{if(confirm('Yeh video delete karni hai?'))fs.collection('videos').doc(id).delete().then(()=>{closeOv();load()})};
+document.addEventListener('click',e=>{var t=e.target.closest('[data-a]');if(t&&A[t.dataset.a])A[t.dataset.a](t.dataset.v,t)});
+
+var rail=x=>{var l=x.likes||[];return`<button data-a="like" data-v="${x.id}" class="${l.includes(U)?'on':''}">👍<small>${fmtN(l.length)}</small></button><button data-a="watch" data-v="${x.id}">💬<small>${(x.comments||[]).length}</small></button><button data-a="share" data-v="${x.id}">↗<small>Share</small></button>`};
+function shorts(m){
+  var L=D.v.filter(x=>x.kind==='short');
+  if(!L.length){m.innerHTML='<div class="empty">Abhi koi Short nahi hai.<br>➕ Upload mein "Short" chunein.</div>';return}
+  m.innerHTML='<div class="shorts">'+L.map(x=>`<div class="sh" data-id="${x.id}"><video src="${x.url}" loop playsinline></video><div class="cap"><div class="row">${av(x.author,'s')}<b>${handle(x.author)}</b>${subBtn(x.author)}</div><div>${esc(x.title)}</div></div><div class="rail" id="rl-${x.id}">${rail(x)}</div></div>`).join('')+'</div>';
+  var io=new IntersectionObserver(es=>es.forEach(e=>{var v=e.target.querySelector('video');if(e.isIntersecting){v.play().catch(()=>{});vw(e.target.dataset.id)}else v.pause()}),{threshold:.7});
+  m.querySelectorAll('.sh').forEach(s=>{io.observe(s);s.querySelector('video').onclick=()=>{var v=s.querySelector('video');v.paused?v.play():v.pause()}});
+}
+
+function subsView(m){
+  var my=Object.keys(D.c).filter(c=>subs(c).includes(U)),L=D.v.filter(x=>my.includes(x.author));
+  m.innerHTML=my.length?`<div class="chips sc">${my.map(c=>`<div class="sci" data-a="ch" data-v="${esc(c)}">${av(c)}<small>${esc(c)}</small></div>`).join('')}</div>`+(L.length?`<div class="grid">${L.map(card).join('')}</div>`:'<div class="empty">In channels ne abhi kuch upload nahi kiya.</div>'):'<div class="empty">Kisi channel ko Subscribe karein, unke videos yahan dikhenge.</div>';
+}
+
+function channel(m){
+  var n=S.ch,L=D.v.filter(x=>x.author===n),sel=L.filter(x=>(x.kind==='short')===(S.ct==='s'));
+  m.innerHTML=`<div class="ban" style="background:linear-gradient(120deg,${colr(n)},#222)"></div><div class="chh">${av(n,'l')}<div style="flex:1"><h2>${esc(n)}</h2><div class="m">${handle(n)} · <span data-sc="${esc(n)}">${sc(n)}</span> subscribers · ${L.length} videos</div></div>${subBtn(n)}</div><div class="tabs"><button class="${S.ct!=='s'?'on':''}" data-a="ctab" data-v="v">Videos</button><button class="${S.ct==='s'?'on':''}" data-a="ctab" data-v="s">Shorts</button></div>`+(sel.length?`<div class="grid">${sel.map(card).join('')}</div>`:'<div class="empty">Yahan kuch nahi hai.</div>');
+}
+
+function you(m){
+  if(S.lib==='set')return sett(m);
+  if(S.lib){
+    var L={hist:H.map(byId).filter(Boolean),wl:WL.map(byId).filter(Boolean),liked:D.v.filter(x=>(x.likes||[]).includes(U)),mine:D.v.filter(x=>x.author===U)}[S.lib],T={hist:'History',wl:'Watch later',liked:'Liked videos',mine:'Your videos'}[S.lib];
+    m.innerHTML=`<div class="bar"><button class="ib" data-a="lib" data-v="">←</button>${T}</div>`+(L.length?`<div class="grid">${L.map(card).join('')}</div>`:'<div class="empty">Yahan abhi kuch nahi hai.</div>');return;
+  }
+  var mine=D.v.filter(x=>x.author===U),row=(k,i,t,n)=>`<div class="mr" data-a="lib" data-v="${k}"><span>${i} ${t}</span><span class="m">${n}</span></div>`;
+  m.innerHTML=`<div class="chh">${av(U,'l')}<div style="flex:1"><h2>${esc(U)}</h2><div class="m">${handle(U)} · <span data-sc="${esc(U)}">${sc(U)}</span> subscribers</div></div><button class="sbtn" data-a="ch" data-v="${esc(U)}">View channel</button></div>
+  <div class="stats"><div><b>${mine.filter(x=>x.kind!=='short').length}</b>Videos</div><div><b>${mine.filter(x=>x.kind==='short').length}</b>Shorts</div><div><b>${fmtN(mine.reduce((s,x)=>s+(x.views||0),0))}</b>Views</div></div>
+  <div style="margin-top:14px">${row('hist','🕘','History',H.length)}${row('wl','🕒','Watch later',WL.length)}${row('liked','👍','Liked videos',D.v.filter(x=>(x.likes||[]).includes(U)).length)}${row('mine','▶','Your videos',mine.length)}${row('set','⚙','Channel settings & password','')}<div class="mr" data-a="theme"><span>🌓 Dark / Light theme</span></div><div class="mr" data-a="logout"><span>🚪 Doosra channel / Logout</span></div></div>`;
+}
+
+function upload(m){
+  m.innerHTML='<div class="pad"><h2>Upload karein</h2><select id="kd"><option value="video">Video</option><option value="short">Short (vertical, chhota)</option></select><input id="ti" placeholder="Title" maxlength="100"><textarea id="de" placeholder="Description" rows="3"></textarea><input id="fl" type="file" accept="video/*"><div class="pb"><i id="pg"></i></div><button class="btn" id="sv" style="width:100%">Upload</button><p id="st" class="m" style="margin-top:10px"></p></div>';
+  $('#sv').onclick=()=>{
+    var f=$('#fl').files[0],t=$('#ti').value.trim(),st=$('#st'),b=$('#sv');
+    if(!f||!t){st.textContent='Title aur video file dono chunein.';return}
+    b.disabled=true;var fd=new FormData();fd.append('file',f);fd.append('upload_preset',CFG.preset);
+    var x=new XMLHttpRequest();x.open('POST','https://api.cloudinary.com/v1_1/'+CFG.cloudName+'/video/upload');
+    x.upload.onprogress=e=>{if(e.lengthComputable){var p=Math.round(e.loaded/e.total*100);$('#pg').style.width=p+'%';st.textContent='Upload ho raha hai... '+p+'%'}};
+    x.onerror=()=>{st.textContent='Upload fail hua.';b.disabled=false};
+    x.onload=()=>{
+      var r={};try{r=JSON.parse(x.responseText)}catch(e){}
+      if(!r.secure_url){st.textContent='Upload fail: '+((r.error&&r.error.message)||'Cloudinary setup check karein');b.disabled=false;return}
+      var k=$('#kd').value;
+      fs.collection('videos').add({author:U,title:t,desc:$('#de').value.trim(),kind:k,url:r.secure_url,dur:r.duration||0,views:0,ts:Date.now(),likes:[],dislikes:[],comments:[]})
+      .then(()=>{S.tab=k==='short'?'shorts':'home';load()}).catch(err=>{st.textContent='Save fail: '+(err.message||'permission denied');b.disabled=false});
+    };
+    x.send(fd);
+  };
+}
+
+function sett(m){
+  m.innerHTML='<div class="bar"><button class="ib" data-a="lib" data-v="">←</button>Channel settings</div><div class="pad"><div class="sec"><h3>Channel ka naam</h3><input id="nn" value="'+esc(U)+'" maxlength="20"><button class="btn" data-a="rename" style="width:100%">Naam badlein</button></div><div class="sec"><h3>Password badlein</h3><input id="op" type="password" placeholder="Purana password"><input id="np" type="password" placeholder="Naya password (kam se kam 4)"><button class="btn" data-a="cpw" style="width:100%">Password badlein</button></div></div>';
+}
+A.rename=async()=>{
+  var nn=$('#nn').value.trim(),old=U;if(!nn||nn===old)return;
+  if(Object.keys(D.c).some(c=>c.toLowerCase()===nn.toLowerCase()&&c.toLowerCase()!==old.toLowerCase()))return toast('Yeh naam pehle se kisi ka hai');
+  try{
+    var b=fs.batch(),ad=await fs.collection('auth').doc(old).get();
+    D.v.forEach(x=>{var u={};
+      if(x.author===old)u.author=nn;
+      if((x.comments||[]).some(c=>c.user===old))u.comments=x.comments.map(c=>c.user===old?Object.assign({},c,{user:nn}):c);
+      ['likes','dislikes'].forEach(f=>{if((x[f]||[]).includes(old))u[f]=x[f].map(n=>n===old?nn:n)});
+      if(Object.keys(u).length)b.update(fs.collection('videos').doc(x.id),u)});
+    Object.keys(D.c).forEach(c=>{if(c!==old&&D.c[c].includes(old))b.set(fs.collection('channels').doc(c),{subs:D.c[c].map(n=>n===old?nn:n)},{merge:true})});
+    b.set(fs.collection('channels').doc(nn),{name:nn,ts:Date.now(),subs:D.c[old]||[]},{merge:true});
+    b.delete(fs.collection('channels').doc(old));
+    if(ad.exists){b.set(fs.collection('auth').doc(nn),ad.data());b.delete(fs.collection('auth').doc(old))}
+    await b.commit();
+    U=nn;localStorage.setItem('tub_user',nn);S.lib='';S.tab='you';toast('Naam badal gaya');shell();
+  }catch(e){toast('Naam nahi badla, dobara try karein')}
+};
+A.cpw=async()=>{
+  var o=$('#op').value,n=$('#np').value;if(n.length<4)return toast('Naya password kam se kam 4 akshar ka ho');
+  try{
+    var ref=fs.collection('auth').doc(U),ad=await ref.get();
+    if(ad.exists&&await hp(ad.data().salt,o)!==ad.data().ph)return toast('Purana password galat hai');
+    var salt=rs();await ref.set({salt:salt,ph:await hp(salt,n),ts:Date.now()});
+    $('#op').value='';$('#np').value='';toast('Password badal gaya');
+  }catch(e){toast('Network check karein')}
+};
+var NAV=[];
+function push(){NAV.push(Object.assign({},S));if(NAV.length>30)NAV.shift()}
+function updBk(){var b=$('#bk');if(b)b.style.display=($('#ov')||S.lib||NAV.length||S.tab!=='home')?'':'none'}
+function appBack(){
+  if($('#ov')){closeOv();return true}
+  if(S.lib){S.lib='';render();return true}
+  if(NAV.length){Object.assign(S,NAV.pop());render();return true}
+  if(S.tab!=='home'){S.tab='home';render();return true}
+  return false;
+}
+A.back=appBack;
+history.replaceState({r:1},'');history.pushState({a:1},'');
+addEventListener('popstate',()=>{if(appBack())history.pushState({a:1},'');else history.back()});
+
+if(!U)login();else{reg(U);shell()}
+</script>
+</body>
+</html>
